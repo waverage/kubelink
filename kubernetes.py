@@ -32,7 +32,7 @@ class Kubernetes:
                 if containerName == '' or container['name'] == containerName:
                     pods.append({
                         'name': item['metadata']['name'],
-                        'container': container['name'],
+                        'container': containerName,
                     })
 
         logging.debug('kubectl get pods: ' + str(pods))

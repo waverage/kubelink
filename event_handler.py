@@ -14,14 +14,17 @@ class EventHandler(FileSystemEventHandler):
         pass
 
     def on_modified(self, event):
+        # Skip uploading directory on modified event
+        if os.path.isdir(event.src_path):
+            return
+
         self._uploadFile(event.src_path)
     
     def on_created(self, event):
-        self._uploadFile(event.src_path, created=True)
+        self._uploadFile(event.src_path)
 
     def on_deleted(self, event):
-        # TODO: Need to delete file via kubectl exec
-        pass
+        self._deleteFile(event.src_path)
 
     def _getRelativePath(self, fullLocalPath):
         source = self.preset['source']
@@ -41,12 +44,12 @@ class EventHandler(FileSystemEventHandler):
     def _getRemotePath(self, relativePath):
         return os.path.join(self.preset['destination'], relativePath)
 
-    def _isNeedUpload(self, filePath):
+    def _isNeedSkip(self, filePath) -> bool:
         # Ignore PhpStorm temp files
-        return len(filePath) >= 1 and filePath[-1:] != '~'
+        return len(filePath) < 1 or filePath[-1:] == '~'
 
-    def _uploadFile(self, filePath, created=False):
-        if not self._isNeedUpload(filePath):
+    def _uploadFile(self, filePath):
+        if self._isNeedSkip(filePath):
             logging.debug('Ignore file: ' + filePath)
             return
 
@@ -63,12 +66,53 @@ class EventHandler(FileSystemEventHandler):
             remoteUri = self.preset['namespace'] + '/' + pod['name'] + ':' + remotePath
             logging.debug('Remote URI: ' + remoteUri)
             logging.info('Upload file: ' + relPath)
-            self._cpCommand(filePath, remoteUri)
+            self._cpCommand(filePath, remoteUri, pod['container'])
 
+    def _deleteFile(self, localFilePath):
+        if self._isNeedSkip(localFilePath):
+            logging.debug('Ignore file: ' + localFilePath)
+            return
 
-    def _cpCommand(self, localPath, remoteUri):
+        relPath = self._getRelativePath(localFilePath)
+        logging.debug('Delete file relative path: ' + str(relPath))
+        if relPath == None:
+            logging.error('Delete file relative path is None: ' + localFilePath)
+            return
+
+        remotePath = self._getRemotePath(relPath)
+        logging.info('Delete file: ' + remotePath)
+
+        for pod in self.pods:
+            self._deleteCommand(pod['name'], remotePath, pod['container'], self.preset['namespace'])
+
+    def _deleteCommand(self, podName, filepath, container=None, namespace='default'):
+        #k exec provider-m-php-b5579ddbb-5v9hn -n production -- sh -c 'rm -rf /code/myfile.txt'
+        command = ['kubectl', 'exec', podName, '-n', namespace]
+        if container != None and container != '':
+            command.append('-c')
+            command.append(container)
+
+        command.append('--')
+        command.append('sh')
+        command.append('-c')
+        command.append("rm -rf " + filepath)
+        logging.debug('rm command: ' + ' '.join(command))
+
+        result = subprocess.run(command, check=True, text=True, stdout=subprocess.PIPE)
+        logging.debug('rm result: ' + result.stdout)
+        return result.stdout
+
+    def _cpCommand(self, localPath, remoteUri, container=None):
+        if not os.path.exists(localPath):
+            logging.debug('Copy file failed - file does not exists: ' + str(localPath))
+            return
+
         # kubectl cp /tmp/foo <some-namespace>/<some-pod>:/tmp/bar
         command = ['kubectl', 'cp', localPath, remoteUri]
-        logging.debug('Command: ' + ' '.join(command))
+        if container != None and container != '':
+            command.append('-c')
+            command.append(container)
+
+        logging.debug('cp command: ' + ' '.join(command))
         result = subprocess.run(command, check=True, text=True, stdout=subprocess.PIPE)
-        logging.debug('Result: ' + result.stdout)
+        logging.debug('cp result: ' + result.stdout)
