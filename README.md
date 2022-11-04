@@ -41,8 +41,19 @@ Create a kubelink config preset with your sync settings.
 ```
 kubelink create --name mypreset --source /Users/bob/myproject --destination /code --namespace default --selector "app=backend"
 ```
+
+* **--name** - kubelink preset name
+* **-s, --source** - Local source directory to sync
+* **-d, --destination** - Destination directory in kubernetes pod
+* **--namespace** - Kubernetes namespace
+* **-l, --selector** - Label selector to find pod. For example: `-s "app=php"`
+* **-c, --container** - Container name. Required if pod contains more than one container
+* **-h, --help** - Show help
+* **--log** - Set log level. Default: info. Available levels: info, debug, error
+
 The presets file location is `~/.kubelink/config.yaml`.
 You can create multiple config presets.
+
 Help available by command:
 ```
 kubelink create -h
@@ -54,6 +65,9 @@ Start watching for real-time synchronizations.
 ```
 kubelink watch mypreset
 ```
+* **name** - kubelink preset name
+* **-h, --help** - Show help
+* **--log** - Set log level. Default: info. Available levels: info, debug, error
 
 Help available by command:
 ```
