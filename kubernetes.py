@@ -1,5 +1,6 @@
 import yaml
 import subprocess
+import logging
 
 class Kubernetes:
     def __init__(self) -> None:
@@ -7,7 +8,9 @@ class Kubernetes:
 
     def findPods(self, selector: str, namespace: str, containerName: str = ''):
         command = ['kubectl', 'get', 'pod', '-n', namespace, '--selector', selector, '-o', 'yaml']
+        logging.debug('Find pods kubectl command: ' + ' '.join(command))
         result = subprocess.run(command, check=True, text=True, stdout=subprocess.PIPE)
+        logging.debug('kubectl find pods result: ' + result.stdout)
         result = yaml.load(result.stdout, yaml.FullLoader)
 
         if result == None or 'items' not in result:
@@ -32,4 +35,5 @@ class Kubernetes:
                         'container': container['name'],
                     })
 
+        logging.debug('kubectl get pods: ' + str(pods))
         return pods

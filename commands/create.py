@@ -1,5 +1,6 @@
 from config import Config
 from argparse import Namespace
+import logging
 
 def createCommand(config: Config, args: Namespace):
     preset = {
@@ -11,12 +12,15 @@ def createCommand(config: Config, args: Namespace):
         'container': args.container
     }
 
+    logging.info('Create preset')
+    logging.debug('Create preset: ' + str(preset))
+
     isNew = True
     if config.presetExists(preset['name']):
         isNew = False
 
     if not config.savePreset(preset):
-        print('Failed to save a new preset')
+        logging.error('Failed to save a new preset')
         exit(1)
 
     if isNew:

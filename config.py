@@ -1,5 +1,6 @@
 import os
 import yaml
+import logging
 
 class Config:
     def __init__(self) -> None:
@@ -11,13 +12,16 @@ class Config:
 
     def savePreset(self, preset: dict) -> bool:
         filteredPreset = self._filterPresetProps(preset)
+        logging.debug('Filtered preset: ' + str(filteredPreset))
         config = self._readConfig()
+        logging.debug('Read config: ' + str(config))
         if config == None:
             config = {
                 'presets': [filteredPreset]
             }
         else:
             self._mergePresets(config, filteredPreset)
+            logging.debug('Merged config: ' + str(config))
 
         return self._writeConfig(config)
 
@@ -45,14 +49,17 @@ class Config:
     def _configFolderCheck(self):
         if not os.path.isdir(self.CONFIG_DIR_PATH):
             os.mkdir(self.CONFIG_DIR_PATH)
+            logging.debug('Created config directory ' + self.CONFIG_DIR_PATH)
 
         if not os.path.exists(self.CONFIG_FILE_PATH):
             f = open(self.CONFIG_FILE_PATH, 'w')
             f.write('')
             f.close()
+            logging.debug('Created config file ' + self.CONFIG_FILE_PATH)
 
     def _readConfig(self):
         if not os.path.exists(self.CONFIG_FILE_PATH):
+            logging.debug('_readConfig - File not found: ' + self.CONFIG_FILE_PATH)
             return None
 
         f = open(self.CONFIG_FILE_PATH, 'r')

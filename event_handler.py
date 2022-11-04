@@ -1,6 +1,7 @@
 from watchdog.events import FileSystemEventHandler
 import os
 import subprocess
+import logging
 
 class EventHandler(FileSystemEventHandler):
     def __init__(self, preset, pods) -> None:
@@ -34,7 +35,7 @@ class EventHandler(FileSystemEventHandler):
                 path = path[1:]
             return path
         else:
-            print('Path is wrong. fullPath: ', fullLocalPath)
+            logging.error('_getRelativePath - Path is wrong. fullPath: ' + fullLocalPath)
             return None
 
     def _getRemotePath(self, relativePath):
@@ -46,26 +47,28 @@ class EventHandler(FileSystemEventHandler):
 
     def _uploadFile(self, filePath, created=False):
         if not self._isNeedUpload(filePath):
+            logging.debug('Ignore file: ' + filePath)
             return
 
         relPath = self._getRelativePath(filePath)
         if relPath == None:
             return
-        print('_uploadFile rel path: ', relPath)
+        logging.debug('Relative local path: ' + relPath)
 
         remotePath = self._getRemotePath(relPath)
 
-        print('Remote path', remotePath)
+        logging.debug('Remote path: ' + remotePath)
 
         for pod in self.pods:
             remoteUri = self.preset['namespace'] + '/' + pod['name'] + ':' + remotePath
-            print('Remote uri: ', remoteUri)
+            logging.debug('Remote URI: ' + remoteUri)
+            logging.info('Upload file: ' + relPath)
             self._cpCommand(filePath, remoteUri)
 
 
     def _cpCommand(self, localPath, remoteUri):
         # kubectl cp /tmp/foo <some-namespace>/<some-pod>:/tmp/bar
         command = ['kubectl', 'cp', localPath, remoteUri]
-        print(' '.join(command))
+        logging.debug('Command: ' + ' '.join(command))
         result = subprocess.run(command, check=True, text=True, stdout=subprocess.PIPE)
-        print(result.stdout)
+        logging.debug('Result: ' + result.stdout)

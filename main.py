@@ -1,8 +1,15 @@
 import sys
 import argparse
-from create import createCommand
-from watch import WatchCommand
+from commands.create import createCommand
+from commands.watch import WatchCommand
 from config import Config
+import logging
+
+logLevelNameToInt = {
+    'info': logging.INFO,
+    'debug': logging.DEBUG,
+    'error': logging.ERROR,
+}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -10,6 +17,8 @@ if __name__ == "__main__":
         description='Klink description',
         epilog='Text at the bottom of help'
     )
+    logLevelArgumentHelp = 'Set log level. Default: info. Available levels: info, debug, error'
+    parser.add_argument('--log', help=logLevelArgumentHelp, default='info')
 
     subparsers = parser.add_subparsers(help='sub-command help')
 
@@ -20,11 +29,18 @@ if __name__ == "__main__":
     createp.add_argument('--namespace', help='Kubernetes namespace', default="default")
     createp.add_argument('-l', '--selector', help='Label selector to find pod. For example: -s "app=php"', default="")
     createp.add_argument('-c', '--container', help='Container name. Required if pod contains more than one container', default="")
+    createp.add_argument('--log', help=logLevelArgumentHelp, default='info')
 
     watchp = subparsers.add_parser('watch', help='Watch source directory to any changes and sync it to kubernetes pod')
     watchp.add_argument('name', help='Klink preset name. If you didn\'t create it yet, you have to run "klink create" command')
+    watchp.add_argument('--log', help=logLevelArgumentHelp, default='info')
 
     args = parser.parse_args()
+
+    logLevel = args.log
+    if logLevel not in logLevelNameToInt:
+        logLevel = 'info'
+    logging.basicConfig(level=logLevelNameToInt[logLevel])
 
     command = sys.argv[1]
     config = Config()
@@ -35,5 +51,5 @@ if __name__ == "__main__":
         watch = WatchCommand(config, args)
         watch.run()
     else:
-        print('Invalid command: ' + command)
+        logging.error('Invalid command: ' + command)
         exit(1)
