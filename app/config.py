@@ -44,7 +44,7 @@ class Config:
 
     def _getConfigDir(self):
         home = os.path.expanduser('~')
-        return os.path.join(home, '.klink')
+        return os.path.join(home, '.kubelink')
 
     def _configFolderCheck(self):
         if not os.path.isdir(self.CONFIG_DIR_PATH):

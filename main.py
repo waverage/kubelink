@@ -1,8 +1,8 @@
 import sys
 import argparse
-from commands.create import createCommand
-from commands.watch import WatchCommand
-from config import Config
+from app.commands.create import createCommand
+from app.commands.watch import WatchCommand
+from app.config import Config
 import logging
 
 logLevelNameToInt = {
@@ -11,10 +11,10 @@ logLevelNameToInt = {
     'error': logging.ERROR,
 }
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(
-        prog='klink',
-        description='Klink description',
+        prog='kubelink',
+        description='kubelink description',
         epilog='Text at the bottom of help'
     )
     logLevelArgumentHelp = 'Set log level. Default: info. Available levels: info, debug, error'
@@ -22,17 +22,17 @@ if __name__ == "__main__":
 
     subparsers = parser.add_subparsers(help='sub-command help')
 
-    createp = subparsers.add_parser('create', help='Create a klink preset')
-    createp.add_argument('--name', help='Name of klink preset')
-    createp.add_argument('-s', '--source', help='Local source directory to sync')
-    createp.add_argument('-d', '--destination', help='Destination directory in kubernetes pod')
+    createp = subparsers.add_parser('create', help='Create a kubelink preset')
+    createp.add_argument('--name', help='Name of kubelink preset', required=True)
+    createp.add_argument('-s', '--source', help='Local source directory to sync', required=True)
+    createp.add_argument('-d', '--destination', help='Destination directory in kubernetes pod', required=True)
     createp.add_argument('--namespace', help='Kubernetes namespace', default="default")
-    createp.add_argument('-l', '--selector', help='Label selector to find pod. For example: -s "app=php"', default="")
+    createp.add_argument('-l', '--selector', help='Label selector to find pod. For example: -s "app=php"', default="", required=True)
     createp.add_argument('-c', '--container', help='Container name. Required if pod contains more than one container', default="")
     createp.add_argument('--log', help=logLevelArgumentHelp, default='info')
 
     watchp = subparsers.add_parser('watch', help='Watch source directory to any changes and sync it to kubernetes pod')
-    watchp.add_argument('name', help='Klink preset name. If you didn\'t create it yet, you have to run "klink create" command')
+    watchp.add_argument('name', help='kubelink preset name. If you didn\'t create it yet, you have to run "kubelink create" command')
     watchp.add_argument('--log', help=logLevelArgumentHelp, default='info')
 
     args = parser.parse_args()
@@ -57,3 +57,6 @@ if __name__ == "__main__":
     else:
         logging.error('Invalid command: ' + command)
         exit(1)
+
+if __name__ == "__main__":
+    main()

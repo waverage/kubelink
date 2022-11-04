@@ -1,10 +1,10 @@
 import time
 from watchdog.observers import Observer
-from event_handler import EventHandler
+from app.event_handler import EventHandler
 import logging
-from config import Config
+from app.config import Config
 from argparse import Namespace
-from kubernetes import Kubernetes
+from app.kubernetes import Kubernetes
 
 class WatchCommand:
     def __init__(self, config: Config, args: Namespace) -> None:
@@ -14,7 +14,7 @@ class WatchCommand:
     def run(self):
         preset = self.config.findPreset(self.args.name)        
         if preset == None:
-            logging.error('Preset not found. First you have to run: "klink create" to create a preset')
+            logging.error('Preset not found. First you have to run: "kubelink create" to create a preset')
             exit(1)
         
         logging.debug('Found preset: ' + str(preset))
