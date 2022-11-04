@@ -4,6 +4,7 @@ Using kubelink is as simple as:
 1. `kubelink create --name mypreset --source ./ --destination /code --namespace default --selector "app=backend"` to create a preset with your settings
 2. `kubelink watch mypreset` to start syncing files
 
+kubelink based on `kubectl cp` and `kubectl exec` commands. So, kubelink is lightweight utility.
 
 Installation
 ============
@@ -35,7 +36,7 @@ Create a kubelink config preset with your sync settings.
 ```
 kubelink create --name mypreset --source /Users/bob/myproject --destination /code --namespace default --selector "app=backend"
 ```
-The config file location is `~/.kubelink/config.yaml`.
+The presets file location is `~/.kubelink/config.yaml`.
 You can create multiple config presets.
 Help available by command:
 ```
@@ -54,8 +55,7 @@ Help available by command:
 kubelink watch -h
 ```
 
-How to build and publish package
---------------------------------
+#### How to build and publish package ####
 1.  Build setup.py
 ```
 python setup.py sdist bdist_wheel
