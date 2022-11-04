@@ -42,7 +42,11 @@ if __name__ == "__main__":
         logLevel = 'info'
     logging.basicConfig(level=logLevelNameToInt[logLevel])
 
-    command = sys.argv[1]
+    if len(sys.argv) < 2:
+        parser.print_help()
+        exit()
+    else:
+        command = sys.argv[1]
     config = Config()
 
     if command == 'create':
