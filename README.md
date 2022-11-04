@@ -6,6 +6,11 @@ Using kubelink is as simple as:
 
 kubelink based on `kubectl cp` and `kubectl exec` commands. So, kubelink is lightweight utility.
 
+Requirements
+============
+* Python >= 3.7
+* kubelink requires that the `tar` binary is present in your kubernetes container. If `tar` is not present, kubelink will fail.
+
 Installation
 ============
 
